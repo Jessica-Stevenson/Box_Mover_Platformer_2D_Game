@@ -9,6 +9,10 @@ public class NewMonoBehaviourScript : MonoBehaviour
     public float jumpForce = 9f;
     public float fallMultiplier = 3.5f;
     public float lowJumpMultiplier = 2f;
+    public float coyoteTime = 0.15f;
+    private float coyoteCounter;
+    public float jumpBufferTime = 0.15f;
+    private float jumpBufferCounter;
 
     //Core components
     private Rigidbody2D rb;
@@ -35,7 +39,8 @@ public class NewMonoBehaviourScript : MonoBehaviour
         controls.Player.Move.canceled += ctx => moveInput = Vector2.zero;
 
         //Jump input
-        controls.Player.Jump.performed += ctx => Jump();
+        controls.Player.Jump.performed += ctx => jumpBufferCounter = jumpBufferTime;
+
     }
 
     void OnEnable()
@@ -52,19 +57,35 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     void Update()
     {
+        //Jump buffer countdown
+        jumpBufferCounter -= Time.deltaTime;
+
+        //Coyote time countdown
+        if (isGrounded)
+        {
+            coyoteCounter = coyoteTime;
+        }
+        else
+        {
+            coyoteCounter -= Time.deltaTime;
+        }
+
+        //Try to jump if buffered
+        if (jumpBufferCounter > 0f && coyoteCounter > 0f)
+        {
+            DoJump();
+            jumpBufferCounter = 0f;
+        }
+
         //Animation
         float animSpeed = Mathf.Abs(rb.linearVelocity.x);
         animator.SetFloat("Speed", animSpeed);
 
-        //Flip player based on movement direction
+        //Flip
         if (moveInput.x > 0 && !facingRight)
-        {
             Flip();
-        }
         else if (moveInput.x < 0 && facingRight)
-        {
             Flip();
-        }
     }
 
     void FixedUpdate()
@@ -88,13 +109,9 @@ public class NewMonoBehaviourScript : MonoBehaviour
         }
     }
 
-    void Jump()
+    void DoJump()
     {
-        //Only jump if grounded
-        if (isGrounded)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-        }
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
     }
 
     void Flip()
@@ -110,15 +127,18 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        //Detect ground contact
         if (collision.gameObject.CompareTag("Ground"))
+        {
             isGrounded = true;
+            coyoteCounter = coyoteTime;
+        }
     }
 
     void OnCollisionExit2D(Collision2D collision)
     {
-        //Detect leaving ground
         if (collision.gameObject.CompareTag("Ground"))
+        {
             isGrounded = false;
+        }
     }
 }

@@ -3,26 +3,28 @@ using UnityEngine;
 public class DraggableBlock : MonoBehaviour
 {
     public ItemData itemData;
-    
+
     private bool isDragging;
     private Vector3 offset;
     private Rigidbody2D rb;
-
-    private bool placed = false;
+    private bool playerOnTop = false;
+    private Collider2D col;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<Collider2D>();
 
         rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.gravityScale = 0f;
     }
 
     void OnMouseDown()
     {
+        if (playerOnTop) return;
+
         isDragging = true;
 
-        rb.bodyType = RigidbodyType2D.Kinematic;
+        col.enabled = false;
 
         offset = transform.position - GetMouseWorldPos();
     }
@@ -31,9 +33,7 @@ public class DraggableBlock : MonoBehaviour
     {
         isDragging = false;
 
-        rb.bodyType = RigidbodyType2D.Kinematic;
-
-        placed = true;
+        col.enabled = true;
     }
 
     void Update()
@@ -51,4 +51,19 @@ public class DraggableBlock : MonoBehaviour
         return mousePoint;
     }
 
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerOnTop = true;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerOnTop = false;
+        }
+    }
 }
