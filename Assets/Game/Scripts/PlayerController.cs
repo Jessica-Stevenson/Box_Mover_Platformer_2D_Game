@@ -129,6 +129,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        //ground check
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
@@ -138,6 +139,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     void OnCollisionExit2D(Collision2D collision)
     {
+        //ground check on exit
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = false;
